@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity 0.8.10;
 
-contract Greeter {
+import "openzeppelin-contracts/contracts/access/Ownable.sol";
+
+contract Greeter is Ownable {
     string public greeting;
 
     constructor(string memory _greeting) {
@@ -16,7 +18,7 @@ contract Greeter {
         return _buildGreeting(name);
     }
 
-    function setGreeting(string memory _greeting) public {
+    function setGreeting(string memory _greeting) public onlyOwner {
         greeting = _greeting;
     }
 

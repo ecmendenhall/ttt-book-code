@@ -2,9 +2,13 @@
 pragma solidity 0.8.10;
 
 import "ds-test/test.sol";
+import "forge-std/Vm.sol";
+
 import "../Greeter.sol";
 
 contract GreeterTest is DSTest {
+    Vm public constant vm = Vm(HEVM_ADDRESS);
+
     Greeter internal greeter;
 
     function setUp() public {
@@ -26,5 +30,14 @@ contract GreeterTest is DSTest {
     function test_set_greeting() public {
         greeter.setGreeting("Ahoy-hoy");
         assertEq(greeter.greet(), "Ahoy-hoy, world!");
+    }
+
+    function test_non_owner_cannot_set_greeting() public {
+        vm.prank(address(1));
+        try greeter.setGreeting("Ahoy-hoy") {
+            fail();
+        } catch Error(string memory message) {
+            assertEq(message, "Ownable: caller is not the owner");
+        }
     }
 }
