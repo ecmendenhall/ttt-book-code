@@ -13,6 +13,10 @@ contract TicTacToken {
         return board;
     }
 
+    function resetBoard() public {
+        delete board;
+    }
+
     function markSpace(uint256 space, uint256 symbol) public {
         require(_validSymbol(symbol), "Invalid symbol");
         require(_validTurn(symbol), "Not your turn");

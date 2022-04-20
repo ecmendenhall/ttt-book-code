@@ -43,6 +43,31 @@ contract TicTacTokenTest is DSTest {
         }
     }
 
+    function test_reset_board() public {
+        ttt.markSpace(3, X);
+        ttt.markSpace(0, O);
+        ttt.markSpace(4, X);
+        ttt.markSpace(1, O);
+        ttt.markSpace(5, X);
+        ttt.resetBoard();
+        uint256[9] memory expected = [
+            EMPTY,
+            EMPTY,
+            EMPTY,
+            EMPTY,
+            EMPTY,
+            EMPTY,
+            EMPTY,
+            EMPTY,
+            EMPTY
+        ];
+        uint256[9] memory actual = ttt.getBoard();
+
+        for (uint256 i = 0; i < 9; i++) {
+            assertEq(actual[i], expected[i]);
+        }
+    }
+
     function test_can_mark_space_with_X() public {
         ttt.markSpace(0, X);
         assertEq(ttt.board(0), X);
