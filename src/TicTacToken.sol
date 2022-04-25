@@ -3,26 +3,47 @@ pragma solidity 0.8.10;
 
 contract TicTacToken {
     uint256[9] public board;
+    address public owner;
+    address public playerX;
+    address public playerO;
 
     uint256 internal constant EMPTY = 0;
     uint256 internal constant X = 1;
     uint256 internal constant O = 2;
     uint256 internal _turns;
 
+    constructor(address _owner, address _playerX, address _playerO) {
+        owner = _owner;
+        playerX = _playerX;
+        playerO = _playerO;
+    }
+
     function getBoard() public view returns (uint256[9] memory) {
         return board;
     }
 
-    function markSpace(uint256 space, uint256 symbol) public {
-        require(_validSymbol(symbol), "Invalid symbol");
-        require(_validTurn(symbol), "Not your turn");
+    function resetBoard() public {
+        require(
+            msg.sender == owner,
+            "Unauthorized"
+        );
+        delete board;
+    }
+
+    function markSpace(uint256 space) public {
+        require(_validPlayer(), "Unauthorized");
+        require(_validTurn(), "Not your turn");
         require(_emptySpace(space), "Already marked");
-        board[space] = symbol;
+        board[space] = _getSymbol(msg.sender);
         _turns++;
     }
 
     function currentTurn() public view returns (uint256) {
         return (_turns % 2 == 0) ? X : O;
+    }
+
+    function msgSender() public view returns (address) {
+        return msg.sender;
     }
 
     function winner() public view returns (uint256) {
@@ -41,6 +62,20 @@ contract TicTacToken {
             if (win == X || win == O) return win;
         }
         return 0;
+    }
+
+    function _getSymbol(address player) public view returns (uint256) {
+        if (player == playerX) return X;
+        if (player == playerO) return O;
+        return EMPTY;
+    }
+
+    function _validTurn() internal view returns (bool) {
+        return currentTurn() == _getSymbol(msg.sender);
+    }
+
+    function _validPlayer() internal view returns (bool) {
+        return msg.sender == playerX || msg.sender == playerO;
     }
 
     function _checkWin(uint256 product) internal pure returns (uint256) {
