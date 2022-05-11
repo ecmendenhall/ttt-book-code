@@ -5,6 +5,7 @@ import "ds-test/test.sol";
 import "forge-std/Vm.sol";
 
 import "../TicTacToken.sol";
+import "../Token.sol";
 
 contract User {
 
@@ -26,6 +27,7 @@ contract User {
 
 contract TicTacTokenTest is DSTest {
     Vm internal vm = Vm(HEVM_ADDRESS);
+    Token internal token;
     TicTacToken internal ttt;
     User internal playerX;
     User internal playerO;
@@ -39,10 +41,12 @@ contract TicTacTokenTest is DSTest {
     address internal constant PLAYER_O = address(3);
 
     function setUp() public {
-        ttt = new TicTacToken(OWNER);
+        token = new Token();
+        ttt = new TicTacToken(OWNER, address(token));
         playerX = new User(PLAYER_X, ttt, vm);
         playerO = new User(PLAYER_O, ttt, vm);
         ttt.newGame(PLAYER_X, PLAYER_O);
+        token.transferOwnership(address(ttt));
     }
 
     function test_get_board() public {
@@ -257,5 +261,101 @@ contract TicTacTokenTest is DSTest {
 
         vm.prank(PLAYER_O);
         ttt.markSpace(0, 1);
+    }
+
+    function test_playerX_win_count_starts_at_zero() public {
+        assertEq(ttt.totalWins(PLAYER_X), 0);
+    }
+
+    function test_playerO_win_count_starts_at_zero() public {
+        assertEq(ttt.totalWins(PLAYER_O), 0);
+    }
+
+    function test_increments_win_count_on_win() public {
+        playerX.markSpace(0, 0);
+        playerO.markSpace(0, 3);
+        playerX.markSpace(0, 1);
+        playerO.markSpace(0, 4);
+        playerX.markSpace(0, 2);
+        assertEq(ttt.totalWins(PLAYER_X), 1);
+
+        ttt.newGame(PLAYER_X, PLAYER_O);
+        playerX.markSpace(1, 1);
+        playerO.markSpace(1, 2);
+        playerX.markSpace(1, 3);
+        playerO.markSpace(1, 4);
+        playerX.markSpace(1, 5);
+        playerO.markSpace(1, 6);
+        assertEq(ttt.totalWins(PLAYER_O), 1);
+    }
+
+    function test_three_move_win_X() public {
+        // x | x | x
+        // o | o | .
+        // . | . | .
+        playerX.markSpace(0, 0);
+        playerO.markSpace(0, 3);
+        playerX.markSpace(0, 1);
+        playerO.markSpace(0, 4);
+        playerX.markSpace(0, 2);
+        assertEq(token.balanceOf(PLAYER_X), 300);
+    }
+
+    function test_three_move_win_O() public {
+        // x | x | .
+        // o | o | o
+        // x | . | .
+        playerX.markSpace(0, 0);
+        playerO.markSpace(0, 3);
+        playerX.markSpace(0, 1);
+        playerO.markSpace(0, 4);
+        playerX.markSpace(0, 6);
+        playerO.markSpace(0, 5);
+        assertEq(token.balanceOf(PLAYER_O), 300);
+    }
+
+    function test_four_move_win_X() public {
+        // x | x | x
+        // o | o | .
+        // x | o | .
+        playerX.markSpace(0, 0);
+        playerO.markSpace(0, 3);
+        playerX.markSpace(0, 1);
+        playerO.markSpace(0, 4);
+        playerX.markSpace(0, 6);
+        playerO.markSpace(0, 7);
+        playerX.markSpace(0, 2);
+        assertEq(token.balanceOf(PLAYER_X), 200);
+    }
+
+    function test_four_move_win_O() public {
+        // x | x | .
+        // o | o | o
+        // x | o | x
+        playerX.markSpace(0, 0);
+        playerO.markSpace(0, 3);
+        playerX.markSpace(0, 1);
+        playerO.markSpace(0, 4);
+        playerX.markSpace(0, 6);
+        playerO.markSpace(0, 7);
+        playerX.markSpace(0, 8);
+        playerO.markSpace(0, 5);
+        assertEq(token.balanceOf(PLAYER_O), 200);
+    }
+
+    function test_five_move_win_X() public {
+        // x | x | x
+        // o | o | x
+        // x | o | o
+        playerX.markSpace(0, 0);
+        playerO.markSpace(0, 3);
+        playerX.markSpace(0, 1);
+        playerO.markSpace(0, 4);
+        playerX.markSpace(0, 6);
+        playerO.markSpace(0, 7);
+        playerX.markSpace(0, 5);
+        playerO.markSpace(0, 8);
+        playerX.markSpace(0, 2);
+        assertEq(token.balanceOf(PLAYER_X), 100);
     }
 }
